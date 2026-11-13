@@ -1,0 +1,27 @@
+{
+	"Server ID": {
+		"Global":{
+			"Checkname1":{
+				"Keywords": ["wort1", "wort2", "wort3"],
+				"Reactions": [":reaction1:", ":reaction2:", "reaction3:"],
+				"User": userid
+			}
+		},
+		"Channel ID":{
+			"Checkname2":{
+				"Keywords": ["wort1", "wort2", "wort3"],
+				"Reactions": [":reaction1:", ":reaction2:", "reaction3:"],
+				"User": userid
+			},
+			"Checkname3":{
+				...
+			}
+		},
+		"Channel2 ID":{
+			...
+		}
+	},
+	"Server2 ID": {
+		...
+	}
+}
