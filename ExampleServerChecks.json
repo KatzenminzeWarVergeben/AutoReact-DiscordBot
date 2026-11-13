@@ -4,14 +4,16 @@
 			"Checkname1":{
 				"Keywords": ["wort1", "wort2", "wort3"],
 				"Reactions": [":reaction1:", ":reaction2:", "reaction3:"],
-				"User": userid
+				"User": userid,
+				"Casesensitive": False
 			}
 		},
 		"Channel ID":{
 			"Checkname2":{
 				"Keywords": ["wort1", "wort2", "wort3"],
 				"Reactions": [":reaction1:", ":reaction2:", "reaction3:"],
-				"User": userid
+				"User": userid,
+				"Casesensitive": True
 			},
 			"Checkname3":{
 				...
