@@ -22,6 +22,7 @@ Go to "Privileged Gateway Intents" and check "Message Content Intent"
 
 Lastly, invite the created bot to your server.
 
+
 To function, the bot needs the following Bot Permissions: View Channels, Send Messages, Read Message History, Add Reactions
 
 
