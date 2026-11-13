@@ -7,7 +7,7 @@ import os
 
 
 
-BotDir= os.path.dirname(os.path.abspath(__file__))
+BotDir = os.path.dirname(os.path.abspath(__file__))
 
 ServerChecksDir = os.path.join(BotDir, "ServerChecks.json")
 
@@ -17,6 +17,16 @@ if os.path.exists(ServerChecksDir):
 
 else:
     BotData = {}
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -42,6 +52,7 @@ client = Client(command_prefix="!", intents=intents)
 
 
 
+
 #define the bots commands:
 
 @client.tree.command(name="add_check", description="Add a new set of Keywords and Reactions to look for")
@@ -63,10 +74,27 @@ async def addcheck(
         CaseSensitivity: bool = False
         ):
     
-    #add new check 
 
     serverid = str(interaction.guild_id)
 
+    #check if a check of this name already exists:
+    if interaction.guild_id is None:
+        return
+
+    replaced = False
+
+    for channel, checks in BotData[serverid].items():
+        if not checks:
+            continue
+
+        #if a check of the name does exist it is deleted and then replaced by the newly added one.
+        if Name in checks: 
+            del BotData[serverid][channel][Name]
+            replaced = True
+            break #Since there can only be one check of a name, the loop can end after finding the check
+
+
+    #add new check:
     if Channel != None:
         channelid = str(Channel.id)
     else:
@@ -102,8 +130,13 @@ async def addcheck(
         json.dump(BotData, data, indent=4)
 
     
+    if replaced:
+        string = "edited"
+    else:
+        string = "created"
+
     #send feedback message
-    await interaction.response.send_message(f"Check {Name} was saved!", ephemeral=True)
+    await interaction.response.send_message(f"Check {Name} was {string}!")
 
 
 
@@ -132,9 +165,15 @@ async def listchecks(interaction: discord.Interaction):
             reactions = ", ".join(details["Reactions"])
 
             output+= f"- {checkname}:\n  - Keywords:{keywords}\n"
+
+            if details["Casesensitive"]:
+                output += "case sensitive: yes\n"
+            else:
+                output += "case sensitive: no\n"
+
             if details["User"] != -1:
                 output+=f"  - User: <@{str(details["User"])}\n"
-            output+="- - ⇒ {reactions}\n"
+            output+=f"- - ⇒ {reactions}\n"
 
         output += "\n"
 
@@ -172,6 +211,10 @@ async def viewcheck(interaction: discord.Interaction, Checkname: str):
         await interaction.response.send_message(f"The check {Checkname} could not be found.")
 
 
+@client.tree.command(name="help", description="List commands and their descriptions")
+async def help(interaction: discord.Interaction):
+
+    await interaction.response.send_message("Currently, the bot supports 4 commands:\n\n### /add_check\nAdds a new check to the bot. If a check of this name already exists on the server, it will be overwritten.\n\nNeeded arguments:\n\nName: The checks name is an arbitrary text string, shown to the user in /list_checks and needed to delete a check in /delete_check.\n\nKeywords: The keywords should include a text of all the words the check is looking for in messages. A check is successfull if all keywords are found. Keywords should be seperated by commas and, optionally spaces, e.g. 'keyword1, keyword2,keyword3'\n\nReactions: The reactions should include a text of all the reactions that should be applied to a message if the check was successfull. Like Keywords, the reactions should be seperated by commas and optionally spaces, e.g. ':wave:,:thumbsup:, :thumbsdown:'\n\n\nOptional arguments:\n\nUser: By default a check is applied to all users of a server. If reactions should only be added to a specific users messages, this user can be chosen here.\n\nChannel: By default a check is applied to all channels of a server the ReactBot can see. If the check should only be applied to a specific channel, this channel can be chosen here.\n\nCaseSensitive: By default keywords are not case sensitive. This means that a check with the keyword 'keyword1' will still count as successfull if a message includes 'kEywOrD1'. If a checks keywords should be case sensitive, this option can be set to True.\n\n\n### /list_checks\nLists all of the servers currently active checks and what they do. This list is only visible to the commands user.\n\n\n### /delete_check\nDeletes the named check from the server. If no check of this name is found, it will return an error. Otherwise a message visible to everyone will be shown in the channel in which the command was used.\n\nNeeded argument:\nCheckname: The name of the check which should be deleted.\n\n\n### /help\nShows the commands user these descriptions of the commands.")
 
 
 
@@ -201,9 +244,19 @@ async def on_message(message:discord.Message):
             for check, details in checks.items():
                 if message.author.id == details["User"] or details["User"] == -1:
                     react = True
-                    for word in details["Keywords"]:
-                        if word not in message.content:
-                            react = False
+                    if details["Casesensitive"]:
+                        for word in details["Keywords"]:
+                            if word not in message.content:
+                                react = False
+                            break
+
+                        if react:
+                            for reaction in details["Reactions"]:
+                                await message.add_reaction(reaction)
+                    else:
+                        for word in details["Keywords"]:
+                            if word.lower() not in message.content.lower():
+                                react = False
                             break
 
                         if react:
@@ -211,6 +264,9 @@ async def on_message(message:discord.Message):
                                 await message.add_reaction(reaction)
 
 
+
 #run the bot:
-with open("DiscordBotToken", "r") as token:
+TokenDir = os.path.join(BotDir, "DiscordBotToken")
+
+with open(TokenDir, "r") as token:
     client.run(token.read())
