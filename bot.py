@@ -85,13 +85,13 @@ async def addcheck(
 
     if serverid in BotData:
 
-        for channel, checks in BotData[serverid].items():
+        for channeldata, checks in BotData[serverid].items():
             if not checks:
                 continue
 
             #if a check of the name does exist it is deleted and then replaced by the newly added one.
             if name in checks: 
-                del BotData[serverid][channel][name]
+                del BotData[serverid][channeldata][name]
                 replaced = True
                 break #Since there can only be one check of a name, the loop can end after finding the check
 
@@ -169,13 +169,13 @@ async def listchecks(interaction: discord.Interaction):
             output+= f"- {checkname}:\n  - Keywords:{keywords}\n"
 
             if details["Casesensitive"]:
-                output += "case sensitive: yes\n"
+                output += "  - case sensitive: yes\n"
             else:
-                output += "case sensitive: no\n"
+                output += "  - case sensitive: no\n"
 
             if details["User"] != -1:
-                output+=f"  - User: <@{str(details["User"])}\n"
-            output+=f"- - ⇒ {reactions}\n"
+                output+=f"  - User: <@{str(details["User"])}>\n"
+            output+=f"  - ⇒ {reactions}\n"
 
         output += "\n"
 
@@ -196,12 +196,12 @@ async def listchecks(interaction: discord.Interaction):
 @client.tree.command(name="delete_check", description="Delete the named check")
 @discord.app_commands.describe(checkname="The check which should be deleted")
 async def viewcheck(interaction: discord.Interaction, checkname: str):
-    serverid = interaction.guild_id
+    serverid = str(interaction.guild_id)
 
     deleted = False
 
     for channel, checks in BotData[serverid].items():
-        for check_name in checks.items():
+        for check_name, details in checks.items():
             if check_name == checkname:
                 del BotData[serverid][channel][checkname]
                 deleted = True
