@@ -16,11 +16,14 @@ In the "Overview" Tab on the left, go to "Installation"
 
 Under "Installation Contexts" check "Guild Install", uncheck "User Install"
 
-Under "Bot" click "Reset Token", then save the newly created token into the DiscordBotToken file from step 1.
+Under "Bot" click "Reset Token", then save the newly created token into the DiscordBotToken file from step 1. 
 
 Go to "Privileged Gateway Intents" and check "Message Content Intent"
 
 Lastly, invite the created bot to your server.
+
+To function, the bot needs the following Bot Permissions: View Channels, Send Messages, Read Message History, Add Reactions
+
 
 ### 3. Run the Bot
 Run the bot in a python environment including discord.py: https://pypi.org/project/discord.py/
