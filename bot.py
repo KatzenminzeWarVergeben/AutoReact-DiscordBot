@@ -83,15 +83,17 @@ async def addcheck(
 
     replaced = False
 
-    for channel, checks in BotData[serverid].items():
-        if not checks:
-            continue
+    if serverid in BotData:
 
-        #if a check of the name does exist it is deleted and then replaced by the newly added one.
-        if name in checks: 
-            del BotData[serverid][channel][name]
-            replaced = True
-            break #Since there can only be one check of a name, the loop can end after finding the check
+        for channel, checks in BotData[serverid].items():
+            if not checks:
+                continue
+
+            #if a check of the name does exist it is deleted and then replaced by the newly added one.
+            if name in checks: 
+                del BotData[serverid][channel][name]
+                replaced = True
+                break #Since there can only be one check of a name, the loop can end after finding the check
 
 
     #add new check:
