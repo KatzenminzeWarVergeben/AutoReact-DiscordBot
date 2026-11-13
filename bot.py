@@ -40,8 +40,8 @@ class Client(commands.Bot):
 
             print(f'Synced {len(synced)} commands!')
 
-        except Exception:
-            print(f'Error syncing commands: {Exception}')
+        except Exception as e:
+            print(f'Error syncing commands: {e}')
 
 
 intents = discord.Intents.default()
@@ -57,21 +57,21 @@ client = Client(command_prefix="!", intents=intents)
 
 @client.tree.command(name="add_check", description="Add a new set of Keywords and Reactions to look for")
 @discord.app_commands.describe(
-            Name="The name of the new Check",
-            Keywords="The keywords to filter a message for, seperated by ',' e.g. 'Highway, Street, Road'",
-            Reactions="The reactions that should be applied, seperated by ',' e.g. ':thumbsup:, :thumbsdown:'",
-            User="Optional: If the keywords should only be looked for in one users messages",
-            Channel="Optional: If the keywords should only be looked for in one channel",
-            CaseSensitivity="Optional: If the keywords should be case sensitive (e.g. 'Street' does not react to 'street'), set to True"
+            name="The name of the new Check",
+            keywords="The keywords to filter a message for, seperated by ',' e.g. 'Highway, Street, Road'",
+            reactions="The reactions that should be applied, seperated by ',' e.g. ':thumbsup:, :thumbsdown:'",
+            user="Optional: If the keywords should only be looked for in one users messages",
+            channel="Optional: If the keywords should only be looked for in one channel",
+            casesensitivity="Optional: If the keywords should be case sensitive (e.g. 'Street' does not react to 'street'), set to True"
             )
 async def addcheck(
         interaction: discord.Interaction,
-        Name: str,
-        Keywords: str, 
-        Reactions: str, 
-        User: discord.Member |  None=None, 
-        Channel: discord.TextChannel | None=None,
-        CaseSensitivity: bool = False
+        name: str,
+        keywords: str, 
+        reactions: str, 
+        user: discord.Member |  None=None, 
+        channel: discord.TextChannel | None=None,
+        casesensitivity: bool = False
         ):
     
 
@@ -88,28 +88,28 @@ async def addcheck(
             continue
 
         #if a check of the name does exist it is deleted and then replaced by the newly added one.
-        if Name in checks: 
-            del BotData[serverid][channel][Name]
+        if name in checks: 
+            del BotData[serverid][channel][name]
             replaced = True
             break #Since there can only be one check of a name, the loop can end after finding the check
 
 
     #add new check:
-    if Channel != None:
-        channelid = str(Channel.id)
+    if channel != None:
+        channelid = str(channel.id)
     else:
         channelid = "Global"
 
     KeywordArr=[]
-    for word in Keywords.split(","):
+    for word in keywords.split(","):
         KeywordArr.append(word.strip()) #Adds every word seperated by , without spaces to the KeywordArr
 
     ReactionArr=[]
-    for word in Reactions.split(","):
+    for word in reactions.split(","):
         ReactionArr.append(word.strip()) #same as KeywordArr
 
-    if User != None:
-        userid = User.id
+    if user != None:
+        userid = user.id
     else:
         userid = -1
 
@@ -118,11 +118,11 @@ async def addcheck(
     BotData[serverid].setdefault(channelid, {}) #Adds a new empty channel dictionary if the channel/global does not yet have one
 
 
-    BotData[serverid][channelid][Name] = {
+    BotData[serverid][channelid][name] = {
             "Keywords": KeywordArr,
             "Reactions": ReactionArr,
             "User": userid,
-            "Casesensitive": CaseSensitivity    
+            "Casesensitive": casesensitivity    
             }
 
     #save new check into ServerChecks.json
@@ -136,7 +136,7 @@ async def addcheck(
         string = "created"
 
     #send feedback message
-    await interaction.response.send_message(f"Check {Name} was {string}!")
+    await interaction.response.send_message(f"Check {name} was {string}!")
 
 
 
@@ -192,23 +192,23 @@ async def listchecks(interaction: discord.Interaction):
 
 
 @client.tree.command(name="delete_check", description="Delete the named check")
-@discord.app_commands.describe(Checkname="The check which should be deleted")
-async def viewcheck(interaction: discord.Interaction, Checkname: str):
+@discord.app_commands.describe(checkname="The check which should be deleted")
+async def viewcheck(interaction: discord.Interaction, checkname: str):
     serverid = interaction.guild_id
 
     deleted = False
 
     for channel, checks in BotData[serverid].items():
-        for checkname in checks.items():
-            if checkname == Checkname:
+        for check_name in checks.items():
+            if check_name == checkname:
                 del BotData[serverid][channel][checkname]
                 deleted = True
                 break
 
     if deleted:
-        await interaction.response.send_message(f"The check {Checkname} was deleted.")
+        await interaction.response.send_message(f"The check {checkname} was deleted.")
     else:
-        await interaction.response.send_message(f"The check {Checkname} could not be found.")
+        await interaction.response.send_message(f"The check {checkname} could not be found.")
 
 
 @client.tree.command(name="help", description="List commands and their descriptions")
