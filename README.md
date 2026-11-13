@@ -49,7 +49,7 @@ User: By default a check is applied to all users of a server. If reactions shoul
 
 Channel: By default a check is applied to all channels of a server the ReactBot can see. If the check should only be applied to a specific channel, this channel can be chosen here.
 
-CaseSensitive: By default keywords are not case sensitive. This means that a check with the keyword "keyword1" will still count as successfull if a message includes "kEywOrD1". If a checks keywords should be case sensitive, this option can be set to True.
+CaseSensitivity: By default keywords are not case sensitive. This means that a check with the keyword "keyword1" will still count as successfull if a message includes "kEywOrD1". If a checks keywords should be case sensitive, this option can be set to True.
 
 
 ### /list_checks
