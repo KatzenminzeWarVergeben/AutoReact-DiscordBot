@@ -152,12 +152,30 @@ async def addcheck(
 
 
 @client.tree.command(name="list_checks", description="List all checks currently active on the server")
-async def listchecks(interaction: discord.Interaction):
+@discord.app_commands.describe(channel="Optional: Only list checks of one channel (and global checks)")
+async def listchecks(interaction: discord.Interaction, channel: discord.TextChannel | None=None):
     serverid = str(interaction.guild_id)
     output=""
 
+    if channel != None:
+        channelid = str(channel.id)
+    else:
+        channelid = ""
+
     checkfound = False
+    specificchannelschecked=0
+
     for channel, checks in BotData[serverid].items():
+        
+        #only check specific channel and global if channel was given
+        if channelid:
+            #end if global and specific channel where already checked
+            if specificchannelschecked == 2:
+                break
+            if channelid == channel or channel == "Global":
+                specificchannelschecked = specificchannelschecked + 1
+            else:
+                continue
 
         if not checks:  #dont write channel names without checks in them into the output
             continue
@@ -193,18 +211,11 @@ async def listchecks(interaction: discord.Interaction):
         output += "\n"
 
     if not checkfound:
-        output = "The server currently does not have any checks."
+        if channelid:
+            output = f"There are currently no global or <#{channelid}> specific checks."
+        else:
+            output = "The server currently does not have any checks."
     await interaction.response.send_message(output, ephemeral=True)
-
-
-
-#@client.tree.command(name="view_check", description="View the named checks information")
-#@discord.app_commands.describe(
-#        Check="The check whichs information should be shown"
-#        )
-#async def viewcheck(interaction: discord.Interaction, Check: str):
-    #implementation
-
 
 
 
@@ -311,15 +322,6 @@ async def deleteallchecks(interaction: discord.Interaction, channel: discord.Tex
     
     
     
-
-
-@client.tree.command(name="help", description="List commands and their descriptions")
-async def help(interaction: discord.Interaction):
-
-    await interaction.response.send_message("Currently, the bot supports 4 commands:\n\n### /add_check\nAdds a new check to the bot. If a check of this name already exists on the server, it will be overwritten.\n\nNeeded arguments:\n\nName: The checks name is an arbitrary text string, shown to the user in /list_checks and needed to delete a check in /delete_check.\n\nKeywords: The keywords should include a text of all the words the check is looking for in messages. A check is successfull if all keywords are found. Keywords should be seperated by commas and, optionally spaces, e.g. 'keyword1, keyword2,keyword3'\n-# If the keyword text field only includes commas, like ',' or ',,,', the check will always be successfull, meaning that the checks reactions are applied to every message.\n\nReactions: The reactions should include a text of all the reactions that should be applied to a message if the check was successfull. Like Keywords, the reactions should be seperated by commas and optionally spaces, e.g. ':wave:,:thumbsup:, :thumbsdown:'\n\n\nOptional arguments:\n\nUser: By default a check is applied to all users of a server. If reactions should only be added to a specific users messages, this user can be chosen here.\n\nChannel: By default a check is applied to all channels of a server the ReactBot can see. If the check should only be applied to a specific channel, this channel can be chosen here.\n\nCaseSensitivity: By default keywords are not case sensitive. This means that a check with the keyword 'keyword1' will still count as successfull if a message includes 'kEywOrD1'. If a checks keywords should be case sensitive, this option can be set to True.\n\nReactPerKeyword: By default, all keywords of a check must be true to make the check successfull. If this option is set to true, this is instead changed to reactions per keyword, meaning using the keywords 'street, highway' will react if either street or highway or both are part of the message.\n\n\n### /list_checks\nLists all of the servers currently active checks and what they do. This list is only visible to the commands user.\n\n\n### /delete_check\nDeletes the named check from the server. If no check of this name is found, it will return an error. Otherwise a message visible to everyone will be shown in the channel in which the command was used.\n\nNeeded argument:\nCheckname: The name of the check which should be deleted.\n\n\n### /delete_all_checks\nDeletes all checks of the server. After entering the command it will ask for comfirmation to make sure that it wasn't accidental execution.\n\nOptional Argument:\nChannel: If a channel is given, the command will delete all checks of this channel instead of deleting all checks of the server.\n\n\n### /help\nShows the commands user these descriptions of the commands.", ephemeral=True)
-
-
-
 #look for messages to apply the checks
 @client.event
 async def on_message(message:discord.Message):
