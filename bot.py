@@ -23,13 +23,6 @@ else:
 
 
 
-
-
-
-
-
-
-
 class Client(commands.Bot):
     async def on_ready(self):
         print(f'logged on as {self.user}!')
@@ -62,7 +55,8 @@ client = Client(command_prefix="!", intents=intents)
             reactions="The reactions that should be applied, seperated by ',' e.g. ':thumbsup:, :thumbsdown:'",
             user="Optional: If the keywords should only be looked for in one users messages",
             channel="Optional: If the keywords should only be looked for in one channel",
-            casesensitivity="Optional: If the keywords should be case sensitive (e.g. 'Street' does not react to 'street'), set to True"
+            casesensitivity="Optional: If the keywords should be case sensitive (e.g. 'Street' does not react to 'street'), set to True",
+            reactperkeyword="Optional: If the check should be successfull if any of the keywords are given, set to True"   
             )
 async def addcheck(
         interaction: discord.Interaction,
@@ -71,7 +65,8 @@ async def addcheck(
         reactions: str, 
         user: discord.Member |  None=None, 
         channel: discord.TextChannel | None=None,
-        casesensitivity: bool = False
+        casesensitivity: bool = False,
+        reactperkeyword: bool = False
         ):
     
 
@@ -134,7 +129,8 @@ async def addcheck(
             "Keywords": KeywordArr,
             "Reactions": ReactionArr,
             "User": userid,
-            "Casesensitive": casesensitivity    
+            "Casesensitive": casesensitivity, 
+            "ReactPerKeyword": reactperkeyword
             }
 
     #save new check into ServerChecks.json
@@ -148,7 +144,7 @@ async def addcheck(
         string = "created"
 
     #send feedback message
-    await interaction.response.send_message(f"Check {name} was {string}!")
+    await interaction.response.send_message(f"Check **{name}** was {string}!")
 
 
 
@@ -185,6 +181,11 @@ async def listchecks(interaction: discord.Interaction):
             else:
                 output += "  - case sensitive: no\n"
 
+            if details["ReactPerKeyword"]:
+                output += "  - reacts per keyword: yes\n"
+            else:
+                output += "  - reacts per keyword: no\n"
+
             if details["User"] != -1:
                 output+=f"  - User: <@{str(details["User"])}>\n"
             output+=f"  - ⇒ {reactions}\n"
@@ -209,20 +210,32 @@ async def listchecks(interaction: discord.Interaction):
 
 @client.tree.command(name="delete_check", description="Delete the named check")
 @discord.app_commands.describe(checkname="The check which should be deleted")
-async def viewcheck(interaction: discord.Interaction, checkname: str):
+async def deletecheck(interaction: discord.Interaction, checkname: str):
     serverid = str(interaction.guild_id)
 
     deleted = False
+    checkchannel = ""
 
     for channel, checks in BotData[serverid].items():
         for check_name, details in checks.items():
             if check_name == checkname:
+                checkchannel = channel
                 del BotData[serverid][channel][checkname]
                 deleted = True
                 break
+        if deleted:
+            break
 
 
     if deleted:
+
+        #also deletes the channel/server if empty
+        if BotData[serverid][checkchannel] == {}:
+            del BotData[serverid][checkchannel]
+
+            if BotData[serverid] == {}:
+                del BotData[serverid]
+
         #save changes to file 
         with open(ServerChecksDir, "w", encoding="utf-8") as data:
             json.dump(BotData, data, indent=4)
@@ -230,6 +243,74 @@ async def viewcheck(interaction: discord.Interaction, checkname: str):
 
     else:
         await interaction.response.send_message(f"The check **{checkname}** could not be found.")
+
+
+
+    
+
+#class for the confirmation button of delete_all_checks
+class ConfirmDeleteChecks(discord.ui.View):
+    def __init__(self, serverid: str, channelid: str):
+        super().__init__(timeout=30)    #Buttons become unusable after 30 sec
+        self.channelid: str = channelid
+        self.serverid: str = serverid
+        
+    @discord.ui.button(label="Cancel", emoji="🔙", style=discord.ButtonStyle.secondary)
+    async def cancel_button(self, interaction: discord.Interaction, button):
+        await interaction.response.edit_message(content="Canceled check deletion.", view=None)
+        self.stop()
+
+    @discord.ui.button(label="Delete", emoji="🗑️", style=discord.ButtonStyle.danger)
+    async def confirm_button(self, interaction: discord.Interaction, button):
+        
+        del BotData[self.serverid][self.channelid]
+
+        #also delete the server entry if there are no more channels in it
+        if BotData[self.serverid] == {}:
+            del BotData[self.serverid]
+        
+        #save changes to file 
+        with open(ServerChecksDir, "w", encoding="utf-8") as data:
+            json.dump(BotData, data, indent=4)
+
+        #send success message  
+        if self.channelid == "Global":
+            await interaction.response.send_message("Successfully deleted all global checks.")
+        else:
+            await interaction.response.send_message(f"Successfully deleted all checks of <#{self.channelid}>.")
+
+        #remove buttons
+        await interaction.followup.edit_message(message_id=interaction.message.id, view=None)
+
+        self.stop()
+
+
+@client.tree.command(name="delete_all_checks", description="Delete all global checks or all checks of a channel")
+@discord.app_commands.describe(channel="Optional: Delete checks of a specific channe. If not chosen, global checks will be deleted.")
+async def deleteallchecks(interaction: discord.Interaction, channel: discord.TextChannel | None=None):
+    
+    serverid = str(interaction.guild_id)
+    if not serverid in BotData:
+        await interaction.response.send_message("The server does not have any checks to delete.")
+        return
+
+    if channel == None:
+        channelid = "Global"
+        output = f"Are you sure that you want to delete all global checks, <@{interaction.user.id}>?"
+    else:
+        channelid = str(channel.id)
+        output = f"Are you sure that you want to delete all checks of <#{channelid}>, <@{interaction.user.id}>?"
+
+    if not channelid in BotData[serverid]:
+        await interaction.response.send_message("There are no checks to delete in this channel.")
+        return
+
+    view = ConfirmDeleteChecks(serverid, channelid)
+    await interaction.response.send_message(output, view=view, ephemeral=True)
+
+    
+    
+    
 
 
 @client.tree.command(name="help", description="List commands and their descriptions")
@@ -273,9 +354,14 @@ async def on_message(message:discord.Message):
                             keyword = keyword.lower()
                             messagec = messagec.lower()
 
-                        if keyword not in messagec:
-                            react = False
-                            break
+                        if details["ReactPerKeyword"]:
+                            if keyword in messagec:
+                                react = True
+                                break
+                        else:
+                            if keyword not in messagec:
+                                react = False
+                                break
 
                     if react:
                         for reaction in details["Reactions"]:
