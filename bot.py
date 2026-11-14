@@ -102,13 +102,23 @@ async def addcheck(
     else:
         channelid = "Global"
 
+    KeywordNum = 0
     KeywordArr=[]
     for word in keywords.split(","):
-        KeywordArr.append(word.strip()) #Adds every word seperated by , without spaces to the KeywordArr
 
+        if word.strip(): #skips empty strings ""
+            KeywordNum = KeywordNum+1
+            KeywordArr.append(word.strip()) #Adds every word seperated by , without spaces to the KeywordArr
+
+    ReactionNum = 0
     ReactionArr=[]
     for word in reactions.split(","):
-        ReactionArr.append(word.strip()) #same as KeywordArr
+        if word.strip():
+            ReactionNum = ReactionNum+1
+            ReactionArr.append(word.strip()) #same as KeywordArr
+
+    
+
 
     if user != None:
         userid = user.id
@@ -150,16 +160,18 @@ async def listchecks(interaction: discord.Interaction):
     serverid = str(interaction.guild_id)
     output=""
 
+    checkfound = False
     for channel, checks in BotData[serverid].items():
 
         if not checks:  #dont write channel names without checks in them into the output
             continue
 
+        checkfound = True
         if channel == "Global":
-            output+= "**Global:**\n"
+            output+= "# **Global:**\n"
         
         else:
-            output+= f"<#{channel}>:\n" 
+            output+= f"# <#{channel}>:\n" 
 
         
         for checkname, details in checks.items():
@@ -179,6 +191,8 @@ async def listchecks(interaction: discord.Interaction):
 
         output += "\n"
 
+    if not checkfound:
+        output = "The server currently does not have any checks."
     await interaction.response.send_message(output, ephemeral=True)
 
 
@@ -207,10 +221,15 @@ async def viewcheck(interaction: discord.Interaction, checkname: str):
                 deleted = True
                 break
 
+
     if deleted:
-        await interaction.response.send_message(f"The check {checkname} was deleted.")
+        #save changes to file 
+        with open(ServerChecksDir, "w", encoding="utf-8") as data:
+            json.dump(BotData, data, indent=4)
+        await interaction.response.send_message(f"The check **{checkname}** was deleted.")
+
     else:
-        await interaction.response.send_message(f"The check {checkname} could not be found.")
+        await interaction.response.send_message(f"The check **{checkname}** could not be found.")
 
 
 @client.tree.command(name="help", description="List commands and their descriptions")
