@@ -178,7 +178,7 @@ async def listchecks(interaction: discord.Interaction):
             keywords = ", ".join(details["Keywords"])
             reactions = ", ".join(details["Reactions"])
 
-            output+= f"- {checkname}:\n  - Keywords:{keywords}\n"
+            output+= f"- {checkname}:\n  - Keywords: {keywords}\n"
 
             if details["Casesensitive"]:
                 output += "  - case sensitive: yes\n"
@@ -252,9 +252,11 @@ async def on_message(message:discord.Message):
         return
 
     serverid = str(message.guild.id)
-    #doesnt continue if server has no checks yet
+
+    #doesnt continue if server never created any checks 
     if serverid not in BotData:
         return
+
     channelid = str(message.channel.id)
 
     for channel, checks in BotData[serverid].items(): 
@@ -266,19 +268,19 @@ async def on_message(message:discord.Message):
                 if message.author.id == details["User"] or details["User"] == -1:
                     react = True
                     if details["Casesensitive"]:
-                        for word in details["Keywords"]:
-                            if word not in message.content:
+                        for keyword in details["Keywords"]:
+                            if keyword not in message.content:
                                 react = False
-                            break
+                                break
 
                         if react:
                             for reaction in details["Reactions"]:
                                 await message.add_reaction(reaction)
                     else:
-                        for word in details["Keywords"]:
-                            if word.lower() not in message.content.lower():
+                        for keyword in details["Keywords"]:
+                            if keyword.lower() not in message.content.lower():
                                 react = False
-                            break
+                                break
 
                         if react:
                             for reaction in details["Reactions"]:
