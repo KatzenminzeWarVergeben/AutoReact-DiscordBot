@@ -2,20 +2,24 @@
 	"Server ID": {
 		"Global":{
 			"Checkname1":{
-				"Keywords": ["wort1", "wort2", "wort3"],
-				"Reactions": [":reaction1:", ":reaction2:", "reaction3:"],
-				"User": userid,
-				"Casesensitive": False
+				"Keywords": [
+				"word1", 
+				"word2", 
+				"word3"
+				],
+				"Reactions": [
+				":reaction1:", 
+				":reaction2:", 
+				"reaction3:"
+				],
+				"User": userid(int),
+				"Casesensitive": false,
+				"ReactPerKeyword": false
+
 			}
 		},
 		"Channel ID":{
 			"Checkname2":{
-				"Keywords": ["wort1", "wort2", "wort3"],
-				"Reactions": [":reaction1:", ":reaction2:", "reaction3:"],
-				"User": userid,
-				"Casesensitive": True
-			},
-			"Checkname3":{
 				...
 			}
 		},
