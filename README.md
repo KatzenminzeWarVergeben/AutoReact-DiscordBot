@@ -42,7 +42,8 @@ Needed arguments:
 
 Name: The checks name is an arbitrary text string, shown to the user in /list_checks and needed to delete a check in /delete_check.
 
-Keywords: The keywords should include a text of all the words the check is looking for in messages. A check is successfull if all keywords are found. Keywords should be seperated by commas and, optionally spaces, e.g. "keyword1, keyword2,keyword3"
+Keywords: The keywords should include a text of all the words the check is looking for in messages. A check is successfull if all keywords are found. Keywords should be seperated by commas and, optionally spaces, e.g. "keyword1, keyword2,keyword3". 
+If the keyword text field only includes commas, like "," or ",,,", the check will always be successfull, meaning that the checks reactions are applied to every message.
 
 Reactions: The reactions should include a text of all the reactions that should be applied to a message if the check was successfull. Like Keywords, the reactions should be seperated by commas and optionally spaces, e.g. ":wave:,:thumbsup:, :thumbsdown:"
 
@@ -55,6 +56,8 @@ Channel: By default a check is applied to all channels of a server the ReactBot 
 
 CaseSensitivity: By default keywords are not case sensitive. This means that a check with the keyword "keyword1" will still count as successfull if a message includes "kEywOrD1". If a checks keywords should be case sensitive, this option can be set to True.
 
+ReactPerKeyword: By default, all keywords of a check must be true to make the check successfull. If this option is set to true, this is instead changed to reactions per keyword, meaning using the keywords "street, highway" will react if either street or highway or both are part of the message.
+
 
 ### /list_checks
 Lists all of the servers currently active checks and what they do. This list is only visible to the commands user.
@@ -66,6 +69,11 @@ Deletes the named check from the server. If no check of this name is found, it w
 Needed argument:
 Checkname: The name of the check which should be deleted.
 
+### /delete_all_checks
+Deletes all checks of the server. After entering the command it will ask for comfirmation to make sure that it wasn't accidental execution.
+
+Optional Argument:
+Channel: If a channel is given, the command will delete all checks of this channel instead of deleting all checks of the server.
 
 ### /help
 Shows the commands user these descriptions of the commands.
