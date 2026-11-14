@@ -63,6 +63,7 @@ ReactPerKeyword: By default, all keywords of a check must be true to make the ch
 Lists all of the servers currently active checks and what they do. This list is only visible to the commands user.
 
 Optional Argument:
+
 Channel: If a channel is given, the list will only include global checks and the given channels checks.
 
 
@@ -70,10 +71,12 @@ Channel: If a channel is given, the list will only include global checks and the
 Deletes the named check from the server. If no check of this name is found, it will return an error. Otherwise a message visible to everyone will be shown in the channel in which the command was used.
 
 Needed argument:
+
 Checkname: The name of the check which should be deleted.
 
 ### /delete_all_checks
 Deletes all global checks of the server. After entering the command it will ask for comfirmation to make sure that it wasn't executed accidentally. 
 
 Optional Argument:
+
 Channel: If a channel is given, the command will delete all checks of this channel instead of deleting all global checks.
