@@ -279,8 +279,10 @@ async def on_message(message:discord.Message):
 
                     if react:
                         for reaction in details["Reactions"]:
-                            await message.add_reaction(reaction)
-                    
+                            try:
+                                await message.add_reaction(reaction)
+                            except discord.HTTPException:
+                                print(f"Error: Couldnt react with given emoji ' {reaction} '")
 
 #run the bot:
 TokenDir = os.path.join(BotDir, "DiscordBotToken")
