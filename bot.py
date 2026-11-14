@@ -267,26 +267,20 @@ async def on_message(message:discord.Message):
             for check, details in checks.items():
                 if message.author.id == details["User"] or details["User"] == -1:
                     react = True
-                    if details["Casesensitive"]:
-                        for keyword in details["Keywords"]:
-                            if keyword not in message.content:
-                                react = False
-                                break
+                    for keyword in details["Keywords"]:
+                        messagec = message.content
+                        if details["Casesensitive"] == False:
+                            keyword = keyword.lower()
+                            messagec = messagec.lower()
 
-                        if react:
-                            for reaction in details["Reactions"]:
-                                await message.add_reaction(reaction)
-                    else:
-                        for keyword in details["Keywords"]:
-                            if keyword.lower() not in message.content.lower():
-                                react = False
-                                break
+                        if keyword not in messagec:
+                            react = False
+                            break
 
-                        if react:
-                            for reaction in details["Reactions"]:
-                                await message.add_reaction(reaction)
-
-
+                    if react:
+                        for reaction in details["Reactions"]:
+                            await message.add_reaction(reaction)
+                    
 
 #run the bot:
 TokenDir = os.path.join(BotDir, "DiscordBotToken")
