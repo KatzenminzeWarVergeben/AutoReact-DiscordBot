@@ -157,6 +157,12 @@ async def listchecks(interaction: discord.Interaction, channel: discord.TextChan
     serverid = str(interaction.guild_id)
     output=""
 
+    #check if server exists in data
+    if not serverid in BotData:
+        output = "The server currently does not have any checks."
+        await interaction.response.send_message(output, ephemeral=True)
+        return
+
     if channel != None:
         channelid = str(channel.id)
     else:
